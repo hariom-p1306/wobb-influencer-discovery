@@ -45,3 +45,8 @@ export interface ProfileDetailResponse {
     user_profile: FullUserProfile;
   };
 }
+
+
+export interface SelectedProfile extends UserProfileSummary {
+  platform: Platform;
+}
