@@ -1,5 +1,8 @@
 import { useNavigate } from "react-router-dom";
+
 import type { Platform, UserProfileSummary } from "@/types";
+import { useSelectedProfilesStore } from "@/store/useSelectedProfilesStore";
+
 import { VerifiedBadge } from "./VerifiedBadge";
 
 interface ProfileCardProps {
@@ -9,10 +12,11 @@ interface ProfileCardProps {
   onProfileClick?: (username: string) => void;
 }
 
-function formatFollowersLocal(count: number) {
-  if (count >= 1000000) return (count / 1000000).toFixed(1) + "M followers";
-  if (count >= 1000) return (count / 1000).toFixed(0) + "K followers";
-  return count + " followers";
+function formatFollowers(count: number): string {
+  return `${new Intl.NumberFormat("en", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(count)} followers`;
 }
 
 export function ProfileCard({
@@ -23,35 +27,86 @@ export function ProfileCard({
 }: ProfileCardProps) {
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    if (onProfileClick) onProfileClick(profile.username);
-    navigate(`/profile/${profile.username}?platform=${platform}`);
+  const selectedProfiles = useSelectedProfilesStore(
+    (state) => state.selectedProfiles
+  );
+
+  const addProfile = useSelectedProfilesStore(
+    (state) => state.addProfile
+  );
+
+  const isSelected = selectedProfiles.some(
+    (selectedProfile) =>
+      selectedProfile.user_id === profile.user_id &&
+      selectedProfile.platform === platform
+  );
+
+  const handleProfileClick = () => {
+    onProfileClick?.(profile.username);
+
+    navigate(
+      `/profile/${encodeURIComponent(
+        profile.username
+      )}?platform=${platform}`
+    );
+  };
+
+  const handleAddToList = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.stopPropagation();
+
+    if (isSelected) {
+      return;
+    }
+
+    addProfile({
+      ...profile,
+      platform,
+    });
   };
 
   return (
-    <div
-      onClick={handleClick}
-      className="flex items-center gap-3 p-3 border border-gray-300 mb-2 cursor-pointer hover:bg-gray-50 w-[700px]"
+    <article
+      onClick={handleProfileClick}
+      className="mb-3 flex w-full max-w-3xl cursor-pointer items-center gap-4 rounded-xl border border-gray-300 p-4 transition hover:bg-gray-50"
       data-search={searchQuery}
     >
-      <img src={profile.picture} className="w-12 h-12 rounded-full" />
-      <div className="text-left flex-1">
-        <div className="font-bold">
-          @{profile.username}
+      <img
+        src={profile.picture}
+        alt={`${profile.fullname} profile`}
+        loading="lazy"
+        className="h-14 w-14 rounded-full object-cover"
+      />
+
+      <div className="min-w-0 flex-1 text-left">
+        <div className="flex items-center gap-1 font-bold">
+          <span className="truncate">@{profile.username}</span>
+
           <VerifiedBadge verified={profile.is_verified} />
         </div>
-        <div className="text-sm text-gray-600">{profile.fullname}</div>
-        <div className="text-sm">{formatFollowersLocal(profile.followers)}</div>
+
+        <p className="truncate text-sm text-gray-600">
+          {profile.fullname}
+        </p>
+
+        <p className="text-sm">
+          {formatFollowers(profile.followers)}
+        </p>
       </div>
-      {/* TODO: candidates must implement Add to List feature */}
-      {/* TODO: candidates must implement Add to List feature */}
+
       <button
-        disabled
-        className="px-3 py-1 bg-gray-300 text-gray-500 text-sm rounded cursor-not-allowed"
-        onClick={(e) => e.stopPropagation()}
+        type="button"
+        disabled={isSelected}
+        onClick={handleAddToList}
+        className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition ${
+          isSelected
+            ? "cursor-default bg-green-100 text-green-700"
+            : "bg-blue-600 text-white hover:bg-blue-700"
+        }`}
       >
-        Add to List
+        {isSelected ? "Added" : "Add to List"}
       </button>
-    </div>
+    </article>
   );
 }
