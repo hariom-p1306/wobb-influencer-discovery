@@ -5,6 +5,8 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import type { FullUserProfile, ProfileDetailResponse } from "@/types";
 import { formatEngagementRate } from "@/utils/formatters";
 import { loadProfileByUsername } from "@/utils/profileLoader";
+import { useSelectedProfilesStore } from "@/store/useSelectedProfilesStore";
+import type { Platform } from "@/types";
 
 function formatFollowersDetail(count: number) {
   if (count >= 1000000) return (count / 1000000).toFixed(2) + "M";
@@ -15,11 +17,13 @@ function formatFollowersDetail(count: number) {
 export function ProfileDetailPage() {
   const { username } = useParams<{ username: string }>();
   const [searchParams] = useSearchParams();
-  const platform = searchParams.get("platform") || "unknown";
+  const platform =
+    (searchParams.get("platform") as Platform) || "instagram";
   const [profileData, setProfileData] = useState<ProfileDetailResponse | null>(
     null
   );
   const [loaded, setLoaded] = useState(false);
+  const { selectedProfiles, addProfile } = useSelectedProfilesStore();
 
   useEffect(() => {
     if (!username) return;
@@ -61,6 +65,21 @@ export function ProfileDetailPage() {
   }
 
   const user: FullUserProfile = profileData.data.user_profile;
+
+  const isSelected = selectedProfiles.some(
+    (item) =>
+      item.user_id === user.user_id &&
+      item.platform === platform
+  );
+
+  const handleAddToList = () => {
+    if (isSelected) return;
+
+    addProfile({
+      ...user,
+      platform,
+    });
+  };
 
   return (
     <Layout title={user.fullname}>
@@ -151,10 +170,13 @@ export function ProfileDetailPage() {
           {/* TODO: candidates must implement Add to List feature */}
           {/* TODO: candidates must implement Add to List feature */}
           <button
-            disabled
-            className="block mt-4 px-4 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed"
+            onClick={handleAddToList}
+            className={`mt-4 rounded-lg px-4 py-2 font-medium transition ${isSelected
+                ? "bg-green-100 text-green-700 hover:bg-green-200"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
           >
-            Add to List
+            {isSelected ? "Added" : "Add to List"}
           </button>
         </div>
       </div>

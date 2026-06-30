@@ -8,14 +8,27 @@ interface LayoutProps {
 
 export function Layout({ children, title }: LayoutProps) {
   return (
-    <div className="p-4 min-h-screen">
-      <header className="mb-6 border-b pb-4">
-        <Link to="/" className="text-xl font-semibold text-gray-900">
-          Influencer Search
-        </Link>
-        {title && <h1 className="text-2xl mt-2">{title}</h1>}
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow-sm border-b">
+        <div className="mx-auto max-w-6xl px-6 py-5">
+          <Link
+            to="/"
+            className="text-2xl font-bold text-blue-600"
+          >
+            Influencer Search
+          </Link>
+
+          {title && (
+            <h1 className="mt-3 text-3xl font-bold text-gray-900">
+              {title}
+            </h1>
+          )}
+        </div>
       </header>
-      <main>{children}</main>
+
+      <main className="mx-auto max-w-6xl px-6 py-8">
+        {children}
+      </main>
     </div>
   );
 }
