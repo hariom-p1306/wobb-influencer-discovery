@@ -38,8 +38,7 @@ npm run build
 
 ## Live Demo
 
-(Add your Vercel URL here)
-
+https://wobb-influencer-discovery.vercel.app/
 ## GitHub Repository
 
-(Add your GitHub URL here)
+https://github.com/hariom-p1306/wobb-influencer-discovery
